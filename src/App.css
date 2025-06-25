@@ -1,0 +1,41 @@
+body {
+  transition: background 0.4s, color 0.4s;
+}
+
+body.light {
+  background-color: #FFF;
+  color: #222;
+}
+
+body.dark {
+  background-color: #222;
+  color: #FFF;
+}
+
+.error-message {
+  color: red;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.delete-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.complete-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  width: 150px;
+}

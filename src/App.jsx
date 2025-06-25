@@ -1,49 +1,138 @@
 import { useState } from 'react';
 import './App.css'
 
+const stored = JSON.parse(localStorage.data || '{}');
+
 export default function App() {
 
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(stored.todos || []);
+  const [error, setError] = useState('');
+  const [theme, setTheme] = useState(stored.theme || 'light');
+  const [completed, setCompleted] = useState(stored.completed || []);
 
   // todos'u çağırmak istiyorsam todos kullanıcam
   // todos'u değiştirmek istiyorsam setTodos kullanıcam
+
+  document.body.className = theme;
 
   function handleSubmit(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
     const formObj = Object.fromEntries(formData);
+    const todo = formObj.todo.trim();
 
-    setTodos([...todos, formObj.todo]);
+    if (!todo) {
+      setError('Bu todo boş eklenemez !');
+      return;
+      // eğer boş todo eklemeye çalıştığında buradaki return ile akış kesilir
+    }
+
+    const newTodos = [...todos, todo];
+    setTodos(newTodos);
+    setError('');
+    localStorage.data = JSON.stringify(
+      { 
+        todos: newTodos, 
+        theme, 
+        completed 
+      });
     e.target.reset();
     // form gönderildikten sonra formda kaç tane input varsa içlerini temizler
 
+    const input = document.querySelector('input[name="todo"]');
+    if (input) input.focus();
+
     /*
     Yarına yapılacaklar
-      1- input focus
-      2- light - dark mode
-      3- localStorage
-      4- eklenen todo silme
-      5- complete todo butonu
+      1- input focus -> done
+      1.5 -> trim -> done 
+      2- light - dark mode -> done
+      3- localStorage -> done
+      4- eklenen todo silme -> done
+      5- complete todo butonu -> done
+
+      6- düzenle
+
+      Props
     */
 
-
     // console.log(formObj);
+  }
+
+  function toggleTheme() {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.body.className = newTheme;
+
+    localStorage.data = JSON.stringify(
+      { todos, 
+        theme: newTheme, 
+        completed 
+      });
+  }
+
+  function handleDelete(index) {
+    console.log('Todo Silindi');
+
+    const newTodos = todos.filter((_, i) => i !== index);
+    // todos.filter((i) => i !== index)
+    const newCompleted = completed.filter((_, i) => i !== index);
+
+    setTodos(newTodos);
+    setCompleted(newCompleted)
+
+    localStorage.data = JSON.stringify(
+      { todos: newTodos, 
+        theme, 
+        completed: newCompleted
+      });
+  }
+
+  function handleComplete(index) {
+    const newCompleted = [...completed];
+    newCompleted[index] = !newCompleted[index];
+
+    setCompleted(newCompleted);
+    localStorage.data = JSON.stringify(
+      { 
+        todos, 
+        theme, 
+        completed: newCompleted
+      });
   }
 
   return (
     <>
       {/* <NameList /> */}
 
+      <button onClick={toggleTheme}>
+        {theme === 'light' ? 'Dark Moda Geç' : 'Light Moda Geç'}
+      </button>
+
       <h1>Todo Listesi</h1>
-      <form onSubmit={handleSubmit}>
+
+      <form onSubmit={handleSubmit} autoComplete='off'>
         <input type="text" name='todo' placeholder='Todo Giriniz'/>
         <button>Ekle</button>
       </form>
-
+      
+      {error && <p className='error-message'>{error}</p>}
       <ul>
         {todos.map((todo, i) => (
-          <li key={i}>{todo}</li>
+          <li key={i}>
+            <span className={completed[i] ? 'completed' : ''}>{todo}</span>
+            <div>
+              <button
+                className='complete-btn'
+                onClick={() => handleComplete(i)}>✅
+              </button>
+              <button
+                className='delete-btn'
+                onClick={() => handleDelete(i)}>❌
+              </button>
+            </div>
+          </li>
         ))}
       </ul>
     </>
