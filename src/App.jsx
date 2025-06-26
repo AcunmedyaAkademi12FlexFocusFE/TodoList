@@ -9,6 +9,8 @@ export default function App() {
   const [error, setError] = useState('');
   const [theme, setTheme] = useState(stored.theme || 'light');
   const [completed, setCompleted] = useState(stored.completed || []);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editValue, setEditValue] = useState('');
 
   // todos'u çağırmak istiyorsam todos kullanıcam
   // todos'u değiştirmek istiyorsam setTodos kullanıcam
@@ -32,10 +34,10 @@ export default function App() {
     setTodos(newTodos);
     setError('');
     localStorage.data = JSON.stringify(
-      { 
-        todos: newTodos, 
-        theme, 
-        completed 
+      {
+        todos: newTodos,
+        theme,
+        completed
       });
     e.target.reset();
     // form gönderildikten sonra formda kaç tane input varsa içlerini temizler
@@ -66,9 +68,10 @@ export default function App() {
     document.body.className = newTheme;
 
     localStorage.data = JSON.stringify(
-      { todos, 
-        theme: newTheme, 
-        completed 
+      {
+        todos,
+        theme: newTheme,
+        completed
       });
   }
 
@@ -83,8 +86,9 @@ export default function App() {
     setCompleted(newCompleted)
 
     localStorage.data = JSON.stringify(
-      { todos: newTodos, 
-        theme, 
+      {
+        todos: newTodos,
+        theme,
         completed: newCompleted
       });
   }
@@ -95,11 +99,35 @@ export default function App() {
 
     setCompleted(newCompleted);
     localStorage.data = JSON.stringify(
-      { 
-        todos, 
-        theme, 
+      {
+        todos,
+        theme,
         completed: newCompleted
       });
+  }
+
+  function handleEdit(index) {
+    setEditingIndex(index);
+    setEditValue(todos[index]);
+  }
+
+  function handleEditChange(e) {
+    setEditValue(e.target.value);
+  }
+
+  function handleEditSave() {
+    if (!editValue.trim()) return;
+    const newTodos = [...todos];
+    newTodos[editingIndex] = editValue.trim();
+    setTodos(newTodos);
+    localStorage.data = JSON.stringify({ todos: newTodos, theme, completed });
+    setEditingIndex(null);
+    setEditValue('');
+  }
+
+  function handleEditCancel() {
+    setEditingIndex(null);
+    setEditValue('');
   }
 
   return (
@@ -113,25 +141,46 @@ export default function App() {
       <h1>Todo Listesi</h1>
 
       <form onSubmit={handleSubmit} autoComplete='off'>
-        <input type="text" name='todo' placeholder='Todo Giriniz'/>
+        <input type="text" name='todo' placeholder='Todo Giriniz' />
         <button>Ekle</button>
       </form>
-      
+
       {error && <p className='error-message'>{error}</p>}
       <ul>
         {todos.map((todo, i) => (
           <li key={i}>
-            <span className={completed[i] ? 'completed' : ''}>{todo}</span>
-            <div>
-              <button
-                className='complete-btn'
-                onClick={() => handleComplete(i)}>✅
-              </button>
-              <button
-                className='delete-btn'
-                onClick={() => handleDelete(i)}>❌
-              </button>
-            </div>
+            {editingIndex === i ? (
+              <>
+                <input 
+                  type="text" 
+                  value={editValue}
+                  onChange={handleEditChange}
+                  autoFocus 
+                />
+                <button onClick={handleEditSave}>Kaydet</button>
+                <button onClick={handleEditCancel}>İptal</button>
+              </>
+            ) : (
+              <span 
+                className={completed[i] ? 'completed' : ''}
+                onClick={() => handleEdit(i)}
+              >
+                {todo}
+              </span>
+            )
+            }
+            {editingIndex !== i && (
+              <div>
+                <button
+                  className='complete-btn'
+                  onClick={() => handleComplete(i)}>✅
+                </button>
+                <button
+                  className='delete-btn'
+                  onClick={() => handleDelete(i)}>❌
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -156,13 +205,13 @@ function NameList() {
   const tumAd = [...isimler, ...soyadlar];
   // Burada 2 diziyi birleştirerek tek bir dizi oluşturmuş olduk
 
-  return(
+  return (
     <>
       <h2>Map örneği</h2>
       <ul>
-        {isimler.map((isim, i)  => (
+        {isimler.map((isim, i) => (
           <li key={i}>{isim}-{soyadlar[i]}</li>
-        ))}  
+        ))}
         {/* {soyadlar.map((soyad, i) => (
           <li key={i}>{soyad}</li>
         ))} */}
